@@ -352,7 +352,7 @@ class CardRecordDAO:
         return
 
 
-debug_mode = False
+debug_mode = True
 
 
 def debug_print(msg):
@@ -367,10 +367,10 @@ db = CardRecordDAO(DB_PATH)
 async def command_trigger(bot, ev):
     args = ev.message.extract_plain_text().split()
     command = args[0]
-    args.pop(0)
+    del args[0]
+    debug_print(args)
     is_su = hoshino.priv.check_priv(ev, hoshino.priv.SUPERUSER)
     uid = ev['user_id']
-    args = ev.message.extract_plain_text().split()
     msg = ""
     if command == "help":
         if len(args) == 0:
@@ -379,6 +379,7 @@ async def command_trigger(bot, ev):
             return
         msg = "帮助\n"
         debug_print(args[0])
+        debug_print(args[0] == "o")
         if args[0] == "o":
             msg += helpo
         if args[0] == "ca":
@@ -400,10 +401,10 @@ async def command_trigger(bot, ev):
         if args[0] == "trade":
             msg += helpt
         await bot.send(ev, msg)
-    if command == "r" or command == "rate":
+    elif command == "r" or command == "rate":
         msg = f"[CQ:cardimage,file=base64://{base64}]"
         await bot.send(ev, msg)
-    if command == "a" or command == "accept":
+    elif command == "a" or command == "accept":
         oid = int(args[0])
         row = db.get_order_by_oid(oid)
         r = db.Getstat(uid)
@@ -431,7 +432,7 @@ async def command_trigger(bot, ev):
         msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
         debug_print(msg)
         await bot.send(ev, msg)
-    if command == "rej" or command == "reject":
+    elif command == "rej" or command == "reject":
         oid = int(args[0])
         row = db.get_order_by_oid(oid)
         if uid != row[1]:
@@ -451,7 +452,7 @@ async def command_trigger(bot, ev):
         msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
         debug_print(msg)
         await bot.send(ev, msg)
-    if command == "c" or command == "complete":
+    elif command == "c" or command == "complete":
         oid = int(args[0])
         row = db.get_order_by_oid(oid)
         if uid != row[0] and uid != row[1]:
@@ -475,7 +476,7 @@ async def command_trigger(bot, ev):
         msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
         debug_print(msg)
         await bot.send(ev, msg)
-    if command == "list" or command == "l":
+    elif command == "list" or command == "l":
         if not args:
             await bot.send(ev, "缺失参数")
         if not all(item.isnumeric() for item in args):
@@ -503,7 +504,7 @@ async def command_trigger(bot, ev):
                 artstr = "蓝+紫+黄"
             msg += f"#{row[6]}来自[CQ:at,qq={row[0]}],{row[3]}xR{row[4]}:{row[8]}xR{row[5]}({artstr}))\n"
         await bot.send(ev, msg)
-    if command == "cancel" or command == "ca":
+    elif command == "cancel" or command == "ca":
         oid = int(args[0])
         row = db.get_order_by_oid(oid)
         if uid != row[0] and uid != row[1] and not is_su:
@@ -523,12 +524,12 @@ async def command_trigger(bot, ev):
         msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
         debug_print(msg)
         await bot.send(ev, msg)
-    if command == "status" or command == "stat" or command == "s":
+    elif command == "status" or command == "stat" or command == "s":
         r = db.get_order_by_uid(uid)
         for row in r:
             msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
             await bot.send(ev, msg)
-    if command == "order" or command == "o":
+    elif command == "order" or command == "o":
         r = db.Getstat(uid)
         debug_print(r)
         if not r:
@@ -642,3 +643,5 @@ async def command_trigger(bot, ev):
             oid = db.add_order(uid, num, level, goal, arttype, p)
             msg = db.formate(uid, "None", oid, 0, num, level, goal, arttype, p)
         await bot.send(ev, msg)
+    else:
+        await bot.send(ev, "未知指令")
