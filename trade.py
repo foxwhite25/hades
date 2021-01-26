@@ -144,19 +144,19 @@ class CardRecordDAO:
         else:
             return "all"
 
-    def checkqbyrs(self, rs):
+    def checkqbyrs(self, rs, stat=0):
         with self.connect() as conn:
             r = conn.execute(
-                "SELECT * FROM que WHERE rs=? AND stat=0", (rs,)
+                "SELECT * FROM que WHERE rs=? AND stat=?", (rs, stat,)
             ).fetchall()
             r = r[0]
             abab(r)
         return r
 
-    def checkqbyqid(self, qid):
+    def checkqbyqid(self, qid, stat=0):
         with self.connect() as conn:
             r = conn.execute(
-                "SELECT * FROM que WHERE qid=? AND stat=0", (qid,)
+                "SELECT * FROM que WHERE qid=?", (qid,)
             ).fetchall()
             r = r[0]
             abab(r)
@@ -180,6 +180,7 @@ class CardRecordDAO:
                 conn.execute(
                     "UPDATE que SET fou=? WHERE qid=? AND stat=0", (data, qid),
                 )
+
 
     def delpos(self, qid, pos):
         r = self.checkqbyqid(qid)
@@ -279,12 +280,16 @@ class CardRecordDAO:
     def quitq(self, rs, uid):
         r = self.checkqbyrs(rs)
         c = self.inq(rs, uid)
-        self.modifypos(r[0], uid, c)
-        return
+        self.delpos(r[0], c)
+        return r[0]
 
-    def formate_que_msg(self, rs):
-        posstr = self.checkpos(rs)
-        r = self.checkqbyrs(rs)
+    def formate_que_msg(self, rs, qid=0):
+        try:
+            posstr = self.checkpos(rs)
+            r = self.checkqbyrs(rs)
+        except IndexError:
+            posstr = "sec"
+            r = self.checkqbyqid(qid, 2)
         first = r[4].split()
         sec = None
         thi = None
@@ -305,9 +310,9 @@ class CardRecordDAO:
             pos = 4
         if not fou:
             msg = f"⌛当前正在等待r{rs}的成员({pos}/4)" + "\n"
-        elif not r[4] == 2:
-            msg = f"✔成功匹配r{rs}的成员(4/4)" + "\n"
-        else:
+        if r[3] == 1:
+            msg = f"✔成功匹配r{rs}的成员({pos}/4)" + "\n"
+        if r[3] == 2:
             msg = f"❌因为人数不足，取消了本次r{rs}的匹配" + "\n"
         msg += f"[CQ:at,qq={first[1]}] 🕒({self.formatetime(first[0])})" + "\n"
         if sec:
@@ -869,18 +874,20 @@ async def command_trigger(bot, ev):
                 qid = r[0]
                 db.modifypos(qid, uid, db.checkpos(rs))
             else:
-                msg = "你已经在队伍里了"
+                msg = db.formate_que_msg(rs,)
+                await bot.send(ev, "你已经在队伍里了")
                 await bot.send(ev, msg)
+                return
         else:
             db.startque(rs, uid)
-        msg = db.formate_que_msg(rs)
         if db.checkqbyrs(rs)[7]:
             db.start(rs)
+        msg = db.formate_que_msg(rs, qid)
         await bot.send(ev, msg)
     elif command == "out" or command == "ou":
         rs = args[0]
-        db.quitq(rs,uid)
-        msg = db.formate_que_msg(rs)
+        pid = db.quitq(rs, uid)
+        msg = db.formate_que_msg(rs, pid)
         await bot.send(ev, msg)
     else:
         await bot.send(ev, "未知指令")
