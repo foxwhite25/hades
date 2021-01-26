@@ -654,9 +654,11 @@ async def command_trigger(bot, ev):
         if args[0] == "ou":
             msg += helpou
         await bot.send(ev, msg)
+        return
     elif command == "r" or command == "rate":
         msg = f"[CQ:cardimage,file=base64://{base64}]"
         await bot.send(ev, msg)
+        return
     elif command == "a" or command == "accept":
         oid = int(args[0])
         row = db.get_order_by_oid(oid)
@@ -685,6 +687,7 @@ async def command_trigger(bot, ev):
         msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
         abab(msg)
         await bot.send(ev, msg)
+        return
     elif command == "rej" or command == "reject":
         oid = int(args[0])
         row = db.get_order_by_oid(oid)
@@ -705,6 +708,7 @@ async def command_trigger(bot, ev):
         msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
         abab(msg)
         await bot.send(ev, msg)
+        return
     elif command == "c" or command == "complete":
         oid = int(args[0])
         row = db.get_order_by_oid(oid)
@@ -729,6 +733,7 @@ async def command_trigger(bot, ev):
         msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
         abab(msg)
         await bot.send(ev, msg)
+        return
     elif command == "list" or command == "l":
         if not args:
             await bot.send(ev, "缺失参数")
@@ -757,6 +762,7 @@ async def command_trigger(bot, ev):
                 artstr = "蓝+紫+黄"
             msg += f"#{row[6]}来自[CQ:at,qq={row[0]}],{row[3]}xR{row[4]}:{row[8]}xR{row[5]}({artstr}))\n"
         await bot.send(ev, msg)
+        return
     elif command == "cancel" or command == "ca":
         oid = int(args[0])
         row = db.get_order_by_oid(oid)
@@ -777,11 +783,13 @@ async def command_trigger(bot, ev):
         msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
         abab(msg)
         await bot.send(ev, msg)
+        return
     elif command == "status" or command == "stat" or command == "s":
         r = db.get_order_by_uid(uid)
         for row in r:
             msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
             await bot.send(ev, msg)
+            return
     elif command == "order" or command == "o":
         r = db.Getstat(uid)
         abab(r)
@@ -896,6 +904,7 @@ async def command_trigger(bot, ev):
             oid = db.add_order(uid, num, level, goal, arttype, p)
             msg = db.formate(uid, "None", oid, 0, num, level, goal, arttype, p)
         await bot.send(ev, msg)
+        return
     elif command == "in" or command == "i":
         abab(args[0])
         if not args[0] or 11 < int(args[0]) or int(args[0]) < 0:
@@ -921,11 +930,13 @@ async def command_trigger(bot, ev):
             db.start(rs)
         msg = db.formate_que_msg(rs, qid)
         await bot.send(ev, msg)
+        return
     elif command == "out" or command == "ou":
         rs = args[0]
         pid = db.quitq(rs, uid)
         msg = db.formate_que_msg(rs, pid)
         await bot.send(ev, msg)
+        return
     elif command == "start" or command == "s":
         rs = args[0]
         r = db.checkqbyrs(rs)
@@ -934,5 +945,6 @@ async def command_trigger(bot, ev):
         msg = db.formate_que_msg(rs, qid, True)
         await bot.send(ev, "将会提前开始队伍")
         await bot.send(ev, msg)
+        return
     else:
         await bot.send(ev, "未知指令")
