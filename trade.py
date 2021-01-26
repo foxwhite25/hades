@@ -355,308 +355,276 @@ def debug_print(msg):
 db = CardRecordDAO(DB_PATH)
 
 
-@sv.on_prefix("!help")
-async def help(bot, ev):
+@sv.on_prefix("!")
+async def command_trigger(bot, ev):
     args = ev.message.extract_plain_text().split()
-    if len(args) == 0:
-        msg = helpp
-        await bot.send(ev, msg)
-        return
-    debug_print(args[0])
-    if args[0] == "o":
-        msg = helpo
-    if args[0] == "ca":
-        msg = helpca
-    if args[0] == "c":
-        msg = helpc
-    if args[0] == "a":
-        msg = helpa
-    if args[0] == "rej":
-        msg = helprej
-    if args[0] == "r":
-        msg = helpr
-    if args[0] == "l":
-        msg = helpl
-    if args[0] == "s":
-        msg = helps
-    await bot.send(ev, msg)
-
-
-@sv.on_prefix("!r")
-async def rate(bot, ev):
-    msg = f"[CQ:cardimage,file=base64://{base64}]"
-    await bot.send(ev, msg)
-
-
-@sv.on_prefix('!a')
-async def accept(bot, ev):
+    command = args[0]
+    args.pop(0)
     is_su = hoshino.priv.check_priv(ev, hoshino.priv.SUPERUSER)
     uid = ev['user_id']
     args = ev.message.extract_plain_text().split()
-    oid = int(args[0])
-    row = db.get_order_by_oid(oid)
-    r = db.Getstat(uid)
-    debug_print(r)
-    if not r:
-        msg = f"欢迎[CQ:at,qq={uid}]第一次使用本系统，正在为你初始化"
+    if command == "help":
+        if len(args) == 0:
+            msg = helpp
+            await bot.send(ev, msg)
+            return
+        debug_print(args[0])
+        if args[0] == "o":
+            msg = helpo
+        if args[0] == "ca":
+            msg = helpca
+        if args[0] == "c":
+            msg = helpc
+        if args[0] == "a":
+            msg = helpa
+        if args[0] == "rej":
+            msg = helprej
+        if args[0] == "r":
+            msg = helpr
+        if args[0] == "l":
+            msg = helpl
+        if args[0] == "s":
+            msg = helps
         await bot.send(ev, msg)
-        db.createstat(uid)
-        msg = "初始化成功"
+    if command == "r" or command == "rate":
+        msg = f"[CQ:cardimage,file=base64://{base64}]"
         await bot.send(ev, msg)
-    if uid == row[0] and not is_su:
-        msg = '你不能接受自己的订单'
-        await bot.send(ev, msg)
-        return
-    if not all(item.isnumeric() for item in args):
-        msg = '无效参数'
-        await bot.send(ev, msg)
-        return
-    if not row[2] == 0:
-        msg = '订单并不处于能够接受的状态'
-        await bot.send(ev, msg)
-        return
-    db.accept_order(oid, uid)
-    row = db.get_order_by_oid(oid)
-    msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
-    debug_print(msg)
-    await bot.send(ev, msg)
-
-
-@sv.on_prefix('!rej')
-async def reject(bot, ev):
-    uid = ev['user_id']
-    args = ev.message.extract_plain_text().split()
-    oid = int(args[0])
-    row = db.get_order_by_oid(oid)
-    if uid != row[1]:
-        msg = '非卖家无法拒绝订单'
-        await bot.send(ev, msg)
-        return
-    if not all(item.isnumeric() for item in args):
-        msg = '无效参数'
-        await bot.send(ev, msg)
-        return
-    if row[2] != 1:
-        msg = '订单并不处于能够拒绝的状态'
-        await bot.send(ev, msg)
-        return
-    db.reject_order(oid)
-    row = db.get_order_by_oid(oid)
-    msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
-    debug_print(msg)
-    await bot.send(ev, msg)
-
-
-@sv.on_prefix('!c')
-async def complete(bot, ev):
-    uid = ev['user_id']
-    args = ev.message.extract_plain_text().split()
-    oid = int(args[0])
-    row = db.get_order_by_oid(oid)
-    if uid != row[0] and uid != row[1]:
-        msg = '非买家或卖家无法完成订单'
-        await bot.send(ev, msg)
-        return
-    if not all(item.isnumeric() for item in args):
-        msg = '无效参数'
-        await bot.send(ev, msg)
-        return
-    if not row[2] == 1:
-        msg = '订单并不处于能够完成的状态'
-        await bot.send(ev, msg)
-        return
-    db.complete_order(oid, row[0], row[1])
-    debug_print(row[0])
-    debug_print(row[1])
-    db.abpt(row[0])
-    db.aspt(row[1])
-    row = db.get_order_by_oid(oid)
-    msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
-    debug_print(msg)
-    await bot.send(ev, msg)
-
-
-@sv.on_prefix('!l')
-async def listall(bot, ev):
-    args = ev.message.extract_plain_text().split()
-    if not args:
-        await bot.send(ev, "缺失参数")
-    if not all(item.isnumeric() for item in args):
-        msg = '无效参数'
-        await bot.send(ev, msg)
-        return
-    goal = int(args[0])
-    msg = f"_____ R{goal}待处理订单列表_____\n"
-    r = db.get_list(goal)
-    for row in r:
+    if command == "a" or command == "accept":
+        oid = int(args[0])
+        row = db.get_order_by_oid(oid)
+        r = db.Getstat(uid)
         debug_print(r)
-        if row[7] == 0:
-            artstr = "紫"
-        if row[7] == 1:
-            artstr = "黄"
-        if row[7] == 2:
-            artstr = "蓝"
-        if row[7] == 3:
-            artstr = "黄+蓝"
-        if row[7] == 4:
-            artstr = "蓝+紫"
-        if row[7] == 5:
-            artstr = "紫+黄"
-        if row[7] == 6:
-            artstr = "蓝+紫+黄"
-        msg += f"#{row[6]}来自[CQ:at,qq={row[0]}],{row[3]}xR{row[4]}:{row[8]}xR{row[5]}({artstr}))\n"
-    await bot.send(ev, msg)
-
-
-@sv.on_prefix('!ca')
-async def cancel(bot, ev):
-    is_su = hoshino.priv.check_priv(ev, hoshino.priv.SUPERUSER)
-    uid = ev['user_id']
-    args = ev.message.extract_plain_text().split()
-    oid = int(args[0])
-    row = db.get_order_by_oid(oid)
-    if uid != row[0] and uid != row[1] and not is_su:
-        msg = '非买家或卖家无法取消订单'
-        await bot.send(ev, msg)
-        return
-    if not all(item.isnumeric() for item in args):
-        msg = '无效参数'
-        await bot.send(ev, msg)
-        return
-    if row[2] > 1:
-        msg = '订单并不处于能够取消的状态'
-        await bot.send(ev, msg)
-        return
-    db.cancel_order(oid)
-    row = db.get_order_by_oid(oid)
-    msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
-    debug_print(msg)
-    await bot.send(ev, msg)
-
-
-@sv.on_prefix('!s')
-async def stat(bot, ev):
-    uid = ev['user_id']
-    r = db.get_order_by_uid(uid)
-    for row in r:
+        if not r:
+            msg = f"欢迎[CQ:at,qq={uid}]第一次使用本系统，正在为你初始化"
+            await bot.send(ev, msg)
+            db.createstat(uid)
+            msg = "初始化成功"
+            await bot.send(ev, msg)
+        if uid == row[0] and not is_su:
+            msg = '你不能接受自己的订单'
+            await bot.send(ev, msg)
+            return
+        if not all(item.isnumeric() for item in args):
+            msg = '无效参数'
+            await bot.send(ev, msg)
+            return
+        if not row[2] == 0:
+            msg = '订单并不处于能够接受的状态'
+            await bot.send(ev, msg)
+            return
+        db.accept_order(oid, uid)
+        row = db.get_order_by_oid(oid)
         msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
+        debug_print(msg)
         await bot.send(ev, msg)
-
-
-@sv.on_prefix('!o')
-async def order(bot, ev):
-    uid = ev['user_id']
-    args = ev.message.extract_plain_text().split()
-    r = db.Getstat(uid)
-    debug_print(r)
-    if not r:
-        msg = f"欢迎[CQ:at,qq={uid}]第一次使用本系统，正在为你初始化"
+    if command == "rej" or command == "reject":
+        oid = int(args[0])
+        row = db.get_order_by_oid(oid)
+        if uid != row[1]:
+            msg = '非卖家无法拒绝订单'
+            await bot.send(ev, msg)
+            return
+        if not all(item.isnumeric() for item in args):
+            msg = '无效参数'
+            await bot.send(ev, msg)
+            return
+        if row[2] != 1:
+            msg = '订单并不处于能够拒绝的状态'
+            await bot.send(ev, msg)
+            return
+        db.reject_order(oid)
+        row = db.get_order_by_oid(oid)
+        msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
+        debug_print(msg)
         await bot.send(ev, msg)
-        db.createstat(uid)
-        msg = "初始化成功"
+    if command == "c" or command == "complete":
+        oid = int(args[0])
+        row = db.get_order_by_oid(oid)
+        if uid != row[0] and uid != row[1]:
+            msg = '非买家或卖家无法完成订单'
+            await bot.send(ev, msg)
+            return
+        if not all(item.isnumeric() for item in args):
+            msg = '无效参数'
+            await bot.send(ev, msg)
+            return
+        if not row[2] == 1:
+            msg = '订单并不处于能够完成的状态'
+            await bot.send(ev, msg)
+            return
+        db.complete_order(oid, row[0], row[1])
+        debug_print(row[0])
+        debug_print(row[1])
+        db.abpt(row[0])
+        db.aspt(row[1])
+        row = db.get_order_by_oid(oid)
+        msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
+        debug_print(msg)
         await bot.send(ev, msg)
-    if not all(item.isnumeric() for item in args):
-        msg = '无效参数'
+    if command == "list" or command == "l":
+        if not args:
+            await bot.send(ev, "缺失参数")
+        if not all(item.isnumeric() for item in args):
+            msg = '无效参数'
+            await bot.send(ev, msg)
+            return
+        goal = int(args[0])
+        msg = f"_____ R{goal}待处理订单列表_____\n"
+        r = db.get_list(goal)
+        for row in r:
+            debug_print(r)
+            if row[7] == 0:
+                artstr = "紫"
+            if row[7] == 1:
+                artstr = "黄"
+            if row[7] == 2:
+                artstr = "蓝"
+            if row[7] == 3:
+                artstr = "黄+蓝"
+            if row[7] == 4:
+                artstr = "蓝+紫"
+            if row[7] == 5:
+                artstr = "紫+黄"
+            if row[7] == 6:
+                artstr = "蓝+紫+黄"
+            msg += f"#{row[6]}来自[CQ:at,qq={row[0]}],{row[3]}xR{row[4]}:{row[8]}xR{row[5]}({artstr}))\n"
         await bot.send(ev, msg)
-        return
-    level = int(args[0])
-    goal = int(args[1])
-    num = int(args[2])
-    arttype = int(args[3])
-    debug_print(f"{level}\n{goal}\n{num}")
-    if len(args) < 3:
-        msg = '无效参数'
+    if command == "cancel" or command == "ca":
+        oid = int(args[0])
+        row = db.get_order_by_oid(oid)
+        if uid != row[0] and uid != row[1] and not is_su:
+            msg = '非买家或卖家无法取消订单'
+            await bot.send(ev, msg)
+            return
+        if not all(item.isnumeric() for item in args):
+            msg = '无效参数'
+            await bot.send(ev, msg)
+            return
+        if row[2] > 1:
+            msg = '订单并不处于能够取消的状态'
+            await bot.send(ev, msg)
+            return
+        db.cancel_order(oid)
+        row = db.get_order_by_oid(oid)
+        msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
+        debug_print(msg)
         await bot.send(ev, msg)
-        return
-    if num < 1:
-        msg = '数字必须大于0'
-        await bot.send(ev, msg)
-        return
-    if goal > 10:
-        msg = '目前只支持购买r6到r10的神器'
-        await bot.send(ev, msg)
-        return
-    if goal < 6:
-        msg = '目前只支持购买r6到r10的神器'
-        await bot.send(ev, msg)
-        return
-    if level > 9:
-        msg = '目前只支持使用r4到r9的神器购买'
-        await bot.send(ev, msg)
-        return
-    if level < 4:
-        msg = '目前只支持使用r4到r9的神器购买'
-        await bot.send(ev, msg)
-        return
-    if level >= goal:
-        msg = '目前不支持反向购买'
-        await bot.send(ev, msg)
-        return
-    if arttype > 6 or arttype < 0:
-        msg = '无效参数'
-        await bot.send(ev, msg)
-        return
-    else:
-        if arttype == 0 and goal > 8:
-            goaltemp = goal + 10
-            n = db.get_needed_arts(level, goaltemp, num)
-            p = int(num / n)
-            debug_print("only tets")
-        elif (arttype == 4 or arttype == 5) and goal > 8:
-            numtemp = int(num / 2)
-            goaltemp = goal + 10
-            n1 = db.get_needed_arts(level, goal, numtemp)
-            n2 = db.get_needed_arts(level, goaltemp, numtemp)
-            n = (n1 + n2) / 2
-            num = numtemp * 2
-            p = int(int(num / n) / 2) * 2
-            debug_print("2mix")
-        elif arttype == 6 and goal > 8:
-            numtemp = int(num / 3)
-            goaltemp = goal + 10
-            n1 = db.get_needed_arts(level, goal, numtemp) * 2
-            n2 = db.get_needed_arts(level, goaltemp, numtemp)
-            n = (n1 + n2) / 3
-            num = numtemp * 3
-            p = int(int(num / n) / 3) * 3
-            debug_print("Mixed")
-            if db.get_needed_arts(level, goaltemp, num) < 0:
-                msg = "无效比率"
-                await bot.send(ev, msg)
-                return
-        elif arttype == 6 and goal < 9:
-            n = db.get_needed_arts(level, goal, num)
-            p = int((num / n) / 3) * 3
-            debug_print("OtherMix")
-            if db.get_needed_arts(level, goal, num) < 0:
-                msg = "无效比率"
-                await bot.send(ev, msg)
-                return
-        elif (arttype == 4 or arttype == 5) and goal < 9:
-            n = db.get_needed_arts(level, goal, num)
-            p = int((num / n) / 2) * 2
-            debug_print("Other2")
-            if db.get_needed_arts(level, goal, num) < 0:
-                msg = "无效比率"
-                await bot.send(ev, msg)
-                return
-        elif arttype == 3:
-            n = db.get_needed_arts(level, goal, num)
-            p = int((num / n) / 2) * 2
-            debug_print("Other2")
-            if db.get_needed_arts(level, goal, num) < 0:
-                msg = "无效比率"
-                await bot.send(ev, msg)
-                return
+    if command == "status" or command == "stat" or command == "s":
+        r = db.get_order_by_uid(uid)
+        for row in r:
+            msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
+            await bot.send(ev, msg)
+    if command == "order" or command == "o":
+        r = db.Getstat(uid)
+        debug_print(r)
+        if not r:
+            msg = f"欢迎[CQ:at,qq={uid}]第一次使用本系统，正在为你初始化"
+            await bot.send(ev, msg)
+            db.createstat(uid)
+            msg = "初始化成功"
+            await bot.send(ev, msg)
+        if not all(item.isnumeric() for item in args):
+            msg = '无效参数'
+            await bot.send(ev, msg)
+            return
+        level = int(args[0])
+        goal = int(args[1])
+        num = int(args[2])
+        arttype = int(args[3])
+        debug_print(f"{level}\n{goal}\n{num}")
+        if len(args) < 3:
+            msg = '无效参数'
+            await bot.send(ev, msg)
+            return
+        if num < 1:
+            msg = '数字必须大于0'
+            await bot.send(ev, msg)
+            return
+        if goal > 10:
+            msg = '目前只支持购买r6到r10的神器'
+            await bot.send(ev, msg)
+            return
+        if goal < 6:
+            msg = '目前只支持购买r6到r10的神器'
+            await bot.send(ev, msg)
+            return
+        if level > 9:
+            msg = '目前只支持使用r4到r9的神器购买'
+            await bot.send(ev, msg)
+            return
+        if level < 4:
+            msg = '目前只支持使用r4到r9的神器购买'
+            await bot.send(ev, msg)
+            return
+        if level >= goal:
+            msg = '目前不支持反向购买'
+            await bot.send(ev, msg)
+            return
+        if arttype > 6 or arttype < 0:
+            msg = '无效参数'
+            await bot.send(ev, msg)
+            return
         else:
-            n = db.get_needed_arts(level, goal, num)
-            p = int(num / n)
-            debug_print("Other")
-            if db.get_needed_arts(level, goal, num) < 0:
-                msg = "无效比率"
-                await bot.send(ev, msg)
-                return
-        num = math.ceil(n * p)
-        oid = db.add_order(uid, num, level, goal, arttype, p)
-        msg = db.formate(uid, "None", oid, 0, num, level, goal, arttype, p)
-    await bot.send(ev, msg)
+            if arttype == 0 and goal > 8:
+                goaltemp = goal + 10
+                n = db.get_needed_arts(level, goaltemp, num)
+                p = int(num / n)
+                debug_print("only tets")
+            elif (arttype == 4 or arttype == 5) and goal > 8:
+                numtemp = int(num / 2)
+                goaltemp = goal + 10
+                n1 = db.get_needed_arts(level, goal, numtemp)
+                n2 = db.get_needed_arts(level, goaltemp, numtemp)
+                n = (n1 + n2) / 2
+                num = numtemp * 2
+                p = int(int(num / n) / 2) * 2
+                debug_print("2mix")
+            elif arttype == 6 and goal > 8:
+                numtemp = int(num / 3)
+                goaltemp = goal + 10
+                n1 = db.get_needed_arts(level, goal, numtemp) * 2
+                n2 = db.get_needed_arts(level, goaltemp, numtemp)
+                n = (n1 + n2) / 3
+                num = numtemp * 3
+                p = int(int(num / n) / 3) * 3
+                debug_print("Mixed")
+                if db.get_needed_arts(level, goaltemp, num) < 0:
+                    msg = "无效比率"
+                    await bot.send(ev, msg)
+                    return
+            elif arttype == 6 and goal < 9:
+                n = db.get_needed_arts(level, goal, num)
+                p = int((num / n) / 3) * 3
+                debug_print("OtherMix")
+                if db.get_needed_arts(level, goal, num) < 0:
+                    msg = "无效比率"
+                    await bot.send(ev, msg)
+                    return
+            elif (arttype == 4 or arttype == 5) and goal < 9:
+                n = db.get_needed_arts(level, goal, num)
+                p = int((num / n) / 2) * 2
+                debug_print("Other2")
+                if db.get_needed_arts(level, goal, num) < 0:
+                    msg = "无效比率"
+                    await bot.send(ev, msg)
+                    return
+            elif arttype == 3:
+                n = db.get_needed_arts(level, goal, num)
+                p = int((num / n) / 2) * 2
+                debug_print("Other2")
+                if db.get_needed_arts(level, goal, num) < 0:
+                    msg = "无效比率"
+                    await bot.send(ev, msg)
+                    return
+            else:
+                n = db.get_needed_arts(level, goal, num)
+                p = int(num / n)
+                debug_print("Other")
+                if db.get_needed_arts(level, goal, num) < 0:
+                    msg = "无效比率"
+                    await bot.send(ev, msg)
+                    return
+            num = math.ceil(n * p)
+            oid = db.add_order(uid, num, level, goal, arttype, p)
+            msg = db.formate(uid, "None", oid, 0, num, level, goal, arttype, p)
+        await bot.send(ev, msg)
