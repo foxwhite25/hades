@@ -153,6 +153,15 @@ class CardRecordDAO:
             abab(r)
         return r
 
+    def checkqbyqid(self, qid):
+        with self.connect() as conn:
+            r = conn.execute(
+                "SELECT * FROM que WHERE qid=? AND stat=0", (qid,)
+            ).fetchall()
+            r = r[0]
+            abab(r)
+        return r
+
     def modifypos(self, qid, uid, pos):
         now = int(datetime.datetime.timestamp(datetime.datetime.now()))
         data = f"{now} {uid}"
@@ -171,6 +180,54 @@ class CardRecordDAO:
                 conn.execute(
                     "UPDATE que SET fou=? WHERE qid=? AND stat=0", (data, qid),
                 )
+
+    def delpos(self, qid, pos):
+        r = self.checkqbyqid(qid)
+        if pos == "first" and not r[5]:
+            with self.connect() as conn:
+                conn.execute(
+                    "UPDATE que SET stat=2 WHERE qid=?", (qid,)
+                )
+            return -1
+        if pos == "first":
+            with self.connect() as conn:
+                conn.execute(
+                    "UPDATE que SET fir=? WHERE qid=?", (r[5], qid,)
+                )
+                conn.execute(
+                    "UPDATE que SET sec=? WHERE qid=?", (r[6], qid,)
+                )
+                conn.execute(
+                    "UPDATE que SET thi=? WHERE qid=?", (r[7], qid,)
+                )
+            return 1
+        if pos == "sec":
+            with self.connect() as conn:
+                conn.execute(
+                    "UPDATE que SET sec=? WHERE qid=?", (r[6], qid,)
+                )
+                conn.execute(
+                    "UPDATE que SET thi=? WHERE qid=?", (r[7], qid,)
+                )
+            return 1
+        if pos == "thi":
+            with self.connect() as conn:
+                conn.execute(
+                    "UPDATE que SET thi=? WHERE qid=?", (r[7], qid,)
+                )
+            return 1
+        if pos == "fou":
+            with self.connect() as conn:
+                conn.execute(
+                    "UPDATE que SET fou=? WHERE qid=?", (None, qid),
+                )
+            return 1
+
+    def delq(self, qid):
+        with self.connect() as conn:
+            conn.execute(
+                "UPDATE que SET stat=2 WHERE qid=?", (qid,)
+            )
 
     def formatetime(self, seconds):
         now = int(datetime.datetime.timestamp(datetime.datetime.now()))
@@ -205,13 +262,24 @@ class CardRecordDAO:
         uid = str(uid)
         print(uid == first[1])
         if uid == first[1] or uid == sec[1] or uid == thi[1] or uid == fou[1]:
-            print(True)
-            return True
+            msg = []
+            if uid == first[1]:
+                msg = "first"
+            if uid == sec[1]:
+                msg = "sec"
+            if uid == thi[1]:
+                msg = "thi"
+            if uid == fou[1]:
+                msg = "fou"
+            return msg
         else:
             print(False)
             return False
 
     def quitq(self, rs, uid):
+        r = self.checkqbyrs(rs)
+        c = self.inq(rs, uid)
+        self.modifypos(r[0], uid, c)
         return
 
     def formate_que_msg(self, rs):
@@ -237,8 +305,10 @@ class CardRecordDAO:
             pos = 4
         if not fou:
             msg = f"⌛当前正在等待r{rs}的成员({pos}/4)" + "\n"
-        else:
+        elif not r[4] == 2:
             msg = f"✔成功匹配r{rs}的成员(4/4)" + "\n"
+        else:
+            msg = f"❌因为人数不足，取消了本次r{rs}的匹配" + "\n"
         msg += f"[CQ:at,qq={first[1]}] 🕒({self.formatetime(first[0])})" + "\n"
         if sec:
             msg += f"[CQ:at,qq={sec[1]}] 🕒({self.formatetime(sec[0])})" + "\n"
@@ -806,6 +876,11 @@ async def command_trigger(bot, ev):
         msg = db.formate_que_msg(rs)
         if db.checkqbyrs(rs)[7]:
             db.start(rs)
+        await bot.send(ev, msg)
+    elif command == "out" or command == "ou":
+        rs = args[0]
+        db.quitq(rs,uid)
+        msg = db.formate_que_msg(rs)
         await bot.send(ev, msg)
     else:
         await bot.send(ev, "未知指令")
