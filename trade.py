@@ -14,7 +14,23 @@ base64 = '''iVBORw0KGgoAAAANSUhEUgAAAjEAAAERCAIAAAAFSWEIAAAgAElEQVR4Ae2df2gbx7r3
 helpp = '''目前启用的模块：
 神器交易(!help trade)
 红星排队(!help rs)'''
-helprs = '''开发中'''
+helprs = '''!i - 加入队列
+!ou - 离开队列
+!st - 强制开始
+如果要得到更多资讯请打 !help <指令>'''
+helpi = '''用法: !i <红星等级>
+栗子: !i 11
+用户: 任何非封禁用户
+将会加入该红星等级的队列'''
+helpou = '''用法: !ou <红星等级>
+栗子: !ou 11
+用户: 任何非封禁用户
+将会退出该红星等级的队列'''
+helpst = '''用法: !st <红星等级>
+栗子: !st 11
+用户: 任何非封禁用户
+将会强制开始该红星等级的队列
+（当集齐四个人会自动开始，不需要这个指令）'''
 helpt = '''买家指令:
 !o - 创建订单
 !ca - 取消订单
@@ -283,7 +299,7 @@ class CardRecordDAO:
         self.delpos(r[0], c)
         return r[0]
 
-    def formate_que_msg(self, rs, qid=0):
+    def formate_que_msg(self, rs, qid=0, temp=False):
         try:
             posstr = self.checkpos(rs)
             r = self.checkqbyrs(rs)
@@ -308,6 +324,8 @@ class CardRecordDAO:
             pos = 3
         else:
             pos = 4
+        if temp and posstr != "sec":
+            pos +=1
         if not fou:
             msg = f"⌛当前正在等待r{rs}的成员({pos}/4)" + "\n"
         if r[3] == 1:
@@ -616,6 +634,12 @@ async def command_trigger(bot, ev):
             msg += helprs
         if args[0] == "trade":
             msg += helpt
+        if args[0] == "st":
+            msg += helpst
+        if args[0] == "i":
+            msg += helpi
+        if args[0] == "ou":
+            msg += helpou
         await bot.send(ev, msg)
     elif command == "r" or command == "rate":
         msg = f"[CQ:cardimage,file=base64://{base64}]"
@@ -879,7 +903,7 @@ async def command_trigger(bot, ev):
                 await bot.send(ev, msg)
                 return
         else:
-            db.startque(rs, uid)
+            qid = db.startque(rs, uid)
         if db.checkqbyrs(rs)[7]:
             db.start(rs)
         msg = db.formate_que_msg(rs, qid)
@@ -888,6 +912,14 @@ async def command_trigger(bot, ev):
         rs = args[0]
         pid = db.quitq(rs, uid)
         msg = db.formate_que_msg(rs, pid)
+        await bot.send(ev, msg)
+    elif command == "start" or command == "s":
+        rs = args[0]
+        r = db.checkqbyrs(rs)
+        qid = r[0]
+        db.start(rs)
+        msg = db.formate_que_msg(rs, qid, True)
+        await bot.send(ev, "将会提前开始队伍")
         await bot.send(ev, msg)
     else:
         await bot.send(ev, "未知指令")
