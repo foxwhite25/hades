@@ -11,16 +11,16 @@
 <br />
 <p align="center">
 
-  <h3 align="center">Hoshino Minecraft版本嘲讽器</h3>
+  <h3 align="center">Hades star 插件合集</h3>
 
   <p align="center">
-    嘲讽你那些还在玩旧版的朋友
+    让你的Hades star有更好的游戏体验
     <br />
-    <a href="https://github.com/foxwhite25/mcv">本项目</a>
+    <a href="https://github.com/foxwhite25/hades">本项目</a>
     ·
-    <a href="https://github.com/foxwhite25/mcv/issues">回报BUG</a>
+    <a href="https://github.com/foxwhite25/hades/issues">回报BUG</a>
     ·
-    <a href="https://github.com/foxwhite25/mcv/issues">请求功能</a>
+    <a href="https://github.com/foxwhite25/hades/issues">请求功能</a>
   </p>
 </p>
 
@@ -56,11 +56,11 @@
 
 <!-- 关于这个插件 -->
 ## 关于这个插件
-本插件使用爬虫在官方Wiki获取版本，并找出时间的差距。
+本插件提供交易，排队等功能
 ### 特点
 
-* 大部分符合`minecraft.gamepedia.com/Java_Edition_[版本号]`的格式的版本都可以被查询，甚至是20w14∞都可以。
-* 主要用于嘲讽那些还在玩1.7.10的人
+* 自动计算所需神器数量
+* 记录所有的交易
 
 
 
@@ -81,7 +81,7 @@
 
 1. 克隆这个仓库
    ```sh
-   git clone https://github.com/foxwhite25/mcv.git
+   git clone https://github.com/foxwhite25/hades.git
    ```
 2. 移动到modules文件夹
 3. 安装必要的Python库
@@ -93,11 +93,12 @@
 
 |指令|说明|
 |-----|-----|
-|/[版本号] |计算时间差并且发送信息|
+|!help |查看帮助信息|
 
 <!-- 未来规划 -->
 ## 未来规划
-* 咕咕咕
+* 多群支持
+* 排队系统 
 * 有什么要的功能可以去issue说，也欢迎pr。
 
 <!-- 做出你的贡献 -->
@@ -125,7 +126,7 @@
 
 狐白白 - 1725036102 
 
-项目地址: [https://github.com/foxwhite25/mcv](https://github.com/foxwhite25/mcv)
+项目地址: [https://github.com/foxwhite25/hades](https://github.com/foxwhite25/hades)
 
 
 
@@ -141,15 +142,15 @@
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/foxwhite25/mcv.svg?style=for-the-badge
-[contributors-url]: https://github.com/foxwhite25/mcv/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/foxwhite25/mcv.svg?style=for-the-badge
-[forks-url]: https://github.com/foxwhite25/mcv/network/members
-[stars-shield]: https://img.shields.io/github/stars/foxwhite25/mcv.svg?style=for-the-badge
-[stars-url]: https://github.com/foxwhite25/mcv/stargazers
-[issues-shield]: https://img.shields.io/github/issues/foxwhite25/mcv.svg?style=for-the-badge
-[issues-url]: https://github.com/foxwhite25/mcv/issues
-[license-shield]: https://img.shields.io/github/license/foxwhite25/mcv.svg?style=for-the-badge
-[license-url]: https://github.com/foxwhite25/mcv/blob/master/LICENSE
+[contributors-shield]: https://img.shields.io/github/contributors/foxwhite25/hades.svg?style=for-the-badge
+[contributors-url]: https://github.com/foxwhite25/hades/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/foxwhite25/hades.svg?style=for-the-badge
+[forks-url]: https://github.com/foxwhite25/hades/network/members
+[stars-shield]: https://img.shields.io/github/stars/foxwhite25/hades.svg?style=for-the-badge
+[stars-url]: https://github.com/foxwhite25/hades/stargazers
+[issues-shield]: https://img.shields.io/github/issues/foxwhite25/hades.svg?style=for-the-badge
+[issues-url]: https://github.com/foxwhite25/hades/issues
+[license-shield]: https://img.shields.io/github/license/foxwhite25/hades.svg?style=for-the-badge
+[license-url]: https://github.com/foxwhite25/hades/blob/master/LICENSE
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/foxwhite25

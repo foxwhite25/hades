@@ -113,12 +113,12 @@ class CardRecordDAO:
 
     def aspt(self, uid):
         r = self.Getstat(uid)
-        print(r)
+        debug_print(r)
         r2 = r[0]
         temp = r2[1] + 1
-        print("aspt")
-        print(temp)
-        print(uid)
+        debug_print("aspt")
+        debug_print(temp)
+        debug_print(uid)
         with self.connect() as conn:
             conn.execute(
                 "UPDATE stats SET sell=? WHERE uid=?", (temp, uid,),
@@ -127,12 +127,12 @@ class CardRecordDAO:
 
     def abpt(self, uid):
         r = self.Getstat(uid)
-        print(r)
+        debug_print(r)
         r2 = r[0]
         temp = r2[2] + 1
-        print("abpt")
-        print(temp)
-        print(uid)
+        debug_print("abpt")
+        debug_print(temp)
+        debug_print(uid)
         with self.connect() as conn:
             conn.execute(
                 "UPDATE stats SET buy=? WHERE uid=?", (temp, uid,),
@@ -172,7 +172,7 @@ class CardRecordDAO:
                 "SELECT * FROM orders",
             ).fetchall()
             oid = len(tempvar) + 1
-        print(oid)
+        debug_print(oid)
         with self.connect() as conn:
             r = conn.execute(
                 "INSERT INTO orders (uidb, num, level, goal, stat, oid ,arttype ,p) VALUES (?, ?, ?, ?, 0, ?, ?, ?)",
@@ -301,14 +301,14 @@ class CardRecordDAO:
         if arttype == 6:
             artstr = "蓝+紫+黄"
             p2 = p / 3
-        print(uids)
+        debug_print(uids)
         if uids == "None" or uids is None:
-            print("No")
+            debug_print("No")
             seller = "还没有"
         else:
-            print("Yes")
+            debug_print("Yes")
             stats = self.Getstat(uidb)
-            print(stats)
+            debug_print(stats)
             stats2 = stats[0]
             sellererstat = self.formatenum(stats2[1])
             seller = f"[CQ:at,qq={uids}]({sellererstat}订单)"
@@ -344,6 +344,14 @@ class CardRecordDAO:
         return
 
 
+debug_mode = False
+
+
+def debug_print(msg):
+    if debug_mode:
+        print(msg)
+
+
 db = CardRecordDAO(DB_PATH)
 
 
@@ -354,7 +362,7 @@ async def help(bot, ev):
         msg = helpp
         await bot.send(ev, msg)
         return
-    print(args[0])
+    debug_print(args[0])
     if args[0] == "o":
         msg = helpo
     if args[0] == "ca":
@@ -388,7 +396,7 @@ async def accept(bot, ev):
     oid = int(args[0])
     row = db.get_order_by_oid(oid)
     r = db.Getstat(uid)
-    print(r)
+    debug_print(r)
     if not r:
         msg = f"欢迎[CQ:at,qq={uid}]第一次使用本系统，正在为你初始化"
         await bot.send(ev, msg)
@@ -410,7 +418,7 @@ async def accept(bot, ev):
     db.accept_order(oid, uid)
     row = db.get_order_by_oid(oid)
     msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
-    print(msg)
+    debug_print(msg)
     await bot.send(ev, msg)
 
 
@@ -435,7 +443,7 @@ async def reject(bot, ev):
     db.reject_order(oid)
     row = db.get_order_by_oid(oid)
     msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
-    print(msg)
+    debug_print(msg)
     await bot.send(ev, msg)
 
 
@@ -458,13 +466,13 @@ async def complete(bot, ev):
         await bot.send(ev, msg)
         return
     db.complete_order(oid, row[0], row[1])
-    print(row[0])
-    print(row[1])
+    debug_print(row[0])
+    debug_print(row[1])
     db.abpt(row[0])
     db.aspt(row[1])
     row = db.get_order_by_oid(oid)
     msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
-    print(msg)
+    debug_print(msg)
     await bot.send(ev, msg)
 
 
@@ -481,7 +489,7 @@ async def listall(bot, ev):
     msg = f"_____ R{goal}待处理订单列表_____\n"
     r = db.get_list(goal)
     for row in r:
-        print(r)
+        debug_print(r)
         if row[7] == 0:
             artstr = "紫"
         if row[7] == 1:
@@ -522,7 +530,7 @@ async def cancel(bot, ev):
     db.cancel_order(oid)
     row = db.get_order_by_oid(oid)
     msg = db.formate(row[0], row[1], row[6], row[2], row[3], row[4], row[5], row[7], row[8])
-    print(msg)
+    debug_print(msg)
     await bot.send(ev, msg)
 
 
@@ -540,7 +548,7 @@ async def order(bot, ev):
     uid = ev['user_id']
     args = ev.message.extract_plain_text().split()
     r = db.Getstat(uid)
-    print(r)
+    debug_print(r)
     if not r:
         msg = f"欢迎[CQ:at,qq={uid}]第一次使用本系统，正在为你初始化"
         await bot.send(ev, msg)
@@ -555,7 +563,7 @@ async def order(bot, ev):
     goal = int(args[1])
     num = int(args[2])
     arttype = int(args[3])
-    print(f"{level}\n{goal}\n{num}")
+    debug_print(f"{level}\n{goal}\n{num}")
     if len(args) < 3:
         msg = '无效参数'
         await bot.send(ev, msg)
@@ -593,7 +601,7 @@ async def order(bot, ev):
             goaltemp = goal + 10
             n = db.get_needed_arts(level, goaltemp, num)
             p = int(num / n)
-            print("only tets")
+            debug_print("only tets")
         elif (arttype == 4 or arttype == 5) and goal > 8:
             numtemp = int(num / 2)
             goaltemp = goal + 10
@@ -602,7 +610,7 @@ async def order(bot, ev):
             n = (n1 + n2) / 2
             num = numtemp * 2
             p = int(int(num / n) / 2) * 2
-            print("2mix")
+            debug_print("2mix")
         elif arttype == 6 and goal > 8:
             numtemp = int(num / 3)
             goaltemp = goal + 10
@@ -611,7 +619,7 @@ async def order(bot, ev):
             n = (n1 + n2) / 3
             num = numtemp * 3
             p = int(int(num / n) / 3) * 3
-            print("Mixed")
+            debug_print("Mixed")
             if db.get_needed_arts(level, goaltemp, num) < 0:
                 msg = "无效比率"
                 await bot.send(ev, msg)
@@ -619,7 +627,7 @@ async def order(bot, ev):
         elif arttype == 6 and goal < 9:
             n = db.get_needed_arts(level, goal, num)
             p = int((num / n) / 3) * 3
-            print("OtherMix")
+            debug_print("OtherMix")
             if db.get_needed_arts(level, goal, num) < 0:
                 msg = "无效比率"
                 await bot.send(ev, msg)
@@ -627,7 +635,7 @@ async def order(bot, ev):
         elif (arttype == 4 or arttype == 5) and goal < 9:
             n = db.get_needed_arts(level, goal, num)
             p = int((num / n) / 2) * 2
-            print("Other2")
+            debug_print("Other2")
             if db.get_needed_arts(level, goal, num) < 0:
                 msg = "无效比率"
                 await bot.send(ev, msg)
@@ -635,7 +643,7 @@ async def order(bot, ev):
         elif arttype == 3:
             n = db.get_needed_arts(level, goal, num)
             p = int((num / n) / 2) * 2
-            print("Other2")
+            debug_print("Other2")
             if db.get_needed_arts(level, goal, num) < 0:
                 msg = "无效比率"
                 await bot.send(ev, msg)
@@ -643,7 +651,7 @@ async def order(bot, ev):
         else:
             n = db.get_needed_arts(level, goal, num)
             p = int(num / n)
-            print("Other")
+            debug_print("Other")
             if db.get_needed_arts(level, goal, num) < 0:
                 msg = "无效比率"
                 await bot.send(ev, msg)
