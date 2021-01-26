@@ -1,0 +1,1 @@
+UPDATE que SET ?=? WHERE qid=? AND stat=0

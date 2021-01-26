@@ -107,23 +107,25 @@ class CardRecordDAO:
                 "SELECT * FROM que WHERE rs=? AND stat=0", (rs,)
             ).fetchall()
             if not r:
-                return 0
+                return False
             else:
-                return 1
+                return True
 
     def getnewqid(self):
         with self.connect() as conn:
             r = conn.execute(
-                "SELECT MIN(qid) FROM que ",
+                "SELECT MAX(qid) FROM que ",
             ).fetchall()
+            r = r[0]
         return r[0] + 1
 
     def startque(self, rs, uid):
-        now = datetime.datetime.timestamp(datetime.datetime.now())
+        now = int(datetime.datetime.timestamp(datetime.datetime.now()))
         qid = self.getnewqid()
+        data = f"{now} {uid}"
         with self.connect() as conn:
             r = conn.execute(
-                "INSERT INTO que (qid,rs,time,stat,fir) VALUES (?,?,?,0,?)", (qid, rs, now, uid)
+                "INSERT INTO que (qid,rs,time,stat,fir) VALUES (?,?,?,0,?)", (qid, rs, now, data)
             )
         return qid
 
@@ -139,6 +141,8 @@ class CardRecordDAO:
             return "thi"
         elif not r[7]:
             return "fou"
+        else:
+            return "all"
 
     def checkqbyrs(self, rs):
         with self.connect() as conn:
@@ -146,13 +150,71 @@ class CardRecordDAO:
                 "SELECT * FROM que WHERE rs=? AND stat=0", (rs,)
             ).fetchall()
             r = r[0]
+            debug_print(r)
         return r
 
     def modifypos(self, qid, uid, pos):
+        now = int(datetime.datetime.timestamp(datetime.datetime.now()))
+        data = f"'{now} {uid}'"
+        debug_print(pos)
+        debug_print(data)
+        debug_print(qid)
         with self.connect() as conn:
             conn.execute(
-                "UPDATE que SET ?=? WHERE qid = ? AND stat=0", (pos, uid, qid),
+                "UPDATE que SET ?=? WHERE qid=? AND stat=0", (pos, data, qid),
             )
+
+    def formatetime(self, seconds):
+        now = int(datetime.datetime.timestamp(datetime.datetime.now()))
+        seconds = now - int(seconds)
+        day = int(seconds // (3600 * 24))
+        hour = int((seconds - day * 3600 * 24) // 3600)
+        minute = int((seconds - (day * 24 + hour) * 3600) // 60)
+        second = round(seconds - day * 3600 * 24 - hour * 3600 - minute * 60)
+        if day:
+            return f"{day}天{hour}小时{minute}分{second}秒"
+        if hour or day:
+            return f"{hour}小时{minute}分{second}秒"
+        if hour or day or minute:
+            return f"{minute}分{second}秒"
+        return f"{second}秒"
+
+    def formate_que_msg(self, rs):
+        now = int(datetime.datetime.timestamp(datetime.datetime.now()))
+        posstr = self.checkpos(rs)
+        r = self.checkqbyrs(rs)
+        debug_print(r)
+        first = r[4].split()
+        sec = None
+        thi = None
+        fou = None
+        try:
+            sec = r[5].split()
+            thi = r[6].split()
+            fou = r[7].split()
+        except AttributeError:
+            pass
+        if posstr == "sec":
+            pos = 1
+        elif posstr == "thi":
+            pos = 2
+        elif posstr == "fou":
+            pos = 3
+        else:
+            pos = 4
+        msg = f"当前r{rs}的成员({pos}/4)" "\n"
+        msg += f"[CQ:at,qq={first[1]}] 🕒({self.formatetime(first[0])})" + "\n"
+        if sec:
+            msg += f"[CQ:at,qq={sec[1]}] 🕒({self.formatetime(sec[0])})" + "\n"
+        if thi:
+            msg += f"[CQ:at,qq={thi[1]}] 🕒({self.formatetime(thi[0])})" + "\n"
+        if fou:
+            msg += f"[CQ:at,qq={fou[1]}] 🕒({self.formatetime(fou[0])})" + "\n"
+        msg += "------------------------\n"
+        if fou:
+            msg += "成功分配四个人，请通知相关队友\n"
+        msg += f"#{r[0]} 本队列已经持续了{self.formatetime(r[2])}"
+        return msg
 
     def Getstat(self, uid):
         with self.connect() as conn:
@@ -680,6 +742,22 @@ async def command_trigger(bot, ev):
             num = math.ceil(n * p)
             oid = db.add_order(uid, num, level, goal, arttype, p)
             msg = db.formate(uid, "None", oid, 0, num, level, goal, arttype, p)
+        await bot.send(ev, msg)
+    elif command == "in" or command == "i":
+        debug_print(args[0])
+        if not args[0] or 11 < int(args[0]) or int(args[0]) < 0:
+            msg = "参数格式错误, 请按正确格式输入指令参数"
+            await bot.send(ev, msg)
+        rs = args[0]
+        is_exist = db.checkque(rs)
+        debug_print(is_exist)
+        if is_exist:
+            r = db.checkqbyrs(rs)
+            qid = r[0]
+            db.modifypos(qid, uid, db.checkpos(rs))
+        else:
+            db.startque(rs, uid)
+        msg = db.formate_que_msg(rs)
         await bot.send(ev, msg)
     else:
         await bot.send(ev, "未知指令")
