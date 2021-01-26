@@ -160,6 +160,21 @@ class CardRecordDAO:
         else:
             return "all"
 
+    def checkposbyqid(self, qid):
+        with self.connect() as conn:
+            r = conn.execute(
+                "SELECT * FROM que WHERE qid=? ", (qid,)
+            ).fetchall()
+            r = r[0]
+        if not r[5]:
+            return "sec"
+        elif not r[6]:
+            return "thi"
+        elif not r[7]:
+            return "fou"
+        else:
+            return "all"
+
     def checkqbyrs(self, rs, stat=0):
         with self.connect() as conn:
             r = conn.execute(
@@ -304,8 +319,8 @@ class CardRecordDAO:
             posstr = self.checkpos(rs)
             r = self.checkqbyrs(rs)
         except IndexError:
-            posstr = "sec"
-            r = self.checkqbyqid(qid, 2)
+            posstr = self.checkposbyqid(qid)
+            r = self.checkqbyqid(qid)
         first = r[4].split()
         sec = None
         thi = None
@@ -324,8 +339,6 @@ class CardRecordDAO:
             pos = 3
         else:
             pos = 4
-        if temp and posstr != "sec":
-            pos +=1
         if not fou:
             msg = f"⌛当前正在等待r{rs}的成员({pos}/4)" + "\n"
         if r[3] == 1:
