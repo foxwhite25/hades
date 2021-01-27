@@ -566,9 +566,9 @@ class CardRecordDAO:
             seller = "还没有"
         else:
             abab("Yes")
-            stats = self.Getstat(uidb)
-            abab(stats)
-            stats2 = stats[0]
+            stat = self.Getstat(uidb)
+            abab(stat)
+            stats2 = stat[0]
             sellererstat = self.formatenum(stats2[1])
             seller = f"[CQ:at,qq={uids}]({sellererstat}订单)"
         p2 = int(p2)
